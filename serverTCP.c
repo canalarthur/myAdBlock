@@ -16,8 +16,6 @@ Serveur TCP :
 Socket => Bind => Listen => Accept => Exchange (reader/writer) => Close
 */
 
-int writen (int fd, char* ptr, int nbytes);
-int readn (int fd,char* ptr, int maxlen);
 int readline (int fd, char* ptr, int maxlen);
 
 void usage(){
@@ -25,16 +23,12 @@ void usage(){
 }
 
 
-
-
-
 int main(int argc, char** argv){
 	int serverSocket,clientSocket;/*socket d'écoute et de dialogue*/
-	int n,retread,clilen,childpid,servlen;
+	int clilen;
 
 	struct sockaddr_in serv_addr,cli_addr;
 	char fromClient[MAXLINE];
-	char fromUser[MAXLINE];
 
 	if (argc!=2){
 		usage();
@@ -73,106 +67,30 @@ int main(int argc, char** argv){
 
 
 	//Accept
-
-	//la structure cli_add permettra de recuperer les donnees du client (adresse ip et port)
-	clilen = sizeof(cli_addr);
-	clientSocket = accept(serverSocket,(struct sockaddr *) &cli_addr, (socklen_t *)&clilen);
-	if(clientSocket <0){
-		perror("servecho : erreur accept \n");
-		exit(1);
-	}
+	while(1){
+		//la structure cli_add permettra de recuperer les donnees du client (adresse ip et port)
+		clilen = sizeof(cli_addr);
+		clientSocket = accept(serverSocket,(struct sockaddr *) &cli_addr, (socklen_t *)&clilen);
+		if(clientSocket <0){
+			perror("servecho : erreur accept \n");
+			exit(1);
+		}
 	
 
-	//Envoi des données : discution 
-
-	if((n=writen(clientSocket,"Bonjour\n",strlen("Bonjour\n")) ) != strlen("Bonjour\n")){
-		perror("serveecho : erreur writen");
-	}
-
-	while((retread=readline(clientSocket,fromClient,MAXLINE))>0){
-		printf("corr: %s",fromClient);
-		if(strcmp(fromClient,"Au revoir\n") == 0)
-			break; // fin de la lecture
-		//Saisir le message de l'util
-		printf("vous : ");
-		if(fgets(fromUser,MAXLINE,stdin)==NULL){
-			perror("error fgets\n");
-			exit(1);
+		//Envoi des données : discution 
+		int r;
+		while(1){
+			r = readline(clientSocket,fromClient,MAXLINE);
+			printf("%s",fromClient);
+			if(r<=0 && (strcmp(fromClient,"\n")==0))break;
 		}
-
-		//Envoyer le message au client
-
-		if((n=writen(clientSocket, fromUser,strlen(fromUser))) != strlen(fromUser)){
-			printf("Erreur de writen");
-			exit(1);
-		}
-	}
-	if(retread<0){
-		perror("erreur readline \n");
-		//exit(1);
+		close(clientSocket);
+		printf("Client socket closed");
 	}
 	close(serverSocket);
-	close(clientSocket);
 
 	return 0;
 
-}
-
-
-
-int writen (int fd, char* ptr, int nbytes)
-{
-  int nleft, nwritten; 
-  char *tmpptr;
-
-  nleft = nbytes;
-  tmpptr=ptr;
-  while (nleft >0) {
-    nwritten = write (fd,ptr, nleft);
-    if (nwritten <=0) {
-      if(errno == EINTR)
-	nwritten=0;
-      else{
-	perror("probleme  dans write\n");
-	return(-1);
-      }
-    }
-    nleft -= nwritten;
-    ptr += nwritten;
-  }
-  return (nbytes);
-}
-
-
-/*
- * Lire  "n" octets à partir d'un descripteur de socket
- */
-int readn (int fd,char* ptr, int maxlen)
-{
-  char *tmpptr;
-  int nleft, nreadn;
-
-  nleft = maxlen;
-  tmpptr=ptr;
-  
-  while (nleft >0) {
-    nreadn = read (fd,ptr, nleft);
-    if (nreadn < 0) {
-      if(errno == EINTR)
-	nreadn=0;
-      else{
-	perror("readn : probleme  dans read \n");
-	return(-1);
-      }
-    }
-    else if(nreadn == 0){
-      /* EOF */ 
-      break ;
-    }
-    nleft -= nreadn;
-    ptr += nreadn;
-  }
-  return (maxlen - nleft);
 }
 
 /*
