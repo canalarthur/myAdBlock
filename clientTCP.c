@@ -4,9 +4,10 @@
 #include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
 #include <errno.h>
 #include <netdb.h>
+#include <unistd.h>
 
 #define MAXLINE 80
 
@@ -16,9 +17,14 @@ Serveur TCP :
 Socket => Bind => Listen => Accept => Exchange (reader/writer) => Close
 */
 
+int writen (int fd, char* ptr, int nbytes);
+int readn (int fd,char* ptr, int maxlen);
+int readline (int fd, char* ptr, int maxlen);
+
 void usage(){
 	printf("usage : clieecho adresse_ip_server numero_port_serveur \n");
 }
+
 int main(int argc, char **argv){
 	int serverSocket,servlen,n,retread;
 	struct sockaddr_in serv_addr;
@@ -79,6 +85,7 @@ int main(int argc, char **argv){
 		perror("erreur readline\n");
 	}
 	close(serverSocket);
+	return 0;
 }
 
 

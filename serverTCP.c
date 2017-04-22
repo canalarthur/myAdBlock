@@ -4,8 +4,9 @@
 #include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
 #include <errno.h>
+#include <unistd.h>
 
 #define MAXLINE 80
 
@@ -15,9 +16,17 @@ Serveur TCP :
 Socket => Bind => Listen => Accept => Exchange (reader/writer) => Close
 */
 
+int writen (int fd, char* ptr, int nbytes);
+int readn (int fd,char* ptr, int maxlen);
+int readline (int fd, char* ptr, int maxlen);
+
 void usage(){
 	printf("usage : servecho numero_port_serveur \n");
 }
+
+
+
+
 
 int main(int argc, char** argv){
 	int serverSocket,clientSocket;/*socket d'écoute et de dialogue*/
@@ -105,13 +114,13 @@ int main(int argc, char** argv){
 	close(serverSocket);
 	close(clientSocket);
 
+	return 0;
+
 }
 
 
-int writen (fd, ptr, nbytes)
-     int  fd;
-     char *ptr;
-     int nbytes;
+
+int writen (int fd, char* ptr, int nbytes)
 {
   int nleft, nwritten; 
   char *tmpptr;
@@ -138,10 +147,7 @@ int writen (fd, ptr, nbytes)
 /*
  * Lire  "n" octets à partir d'un descripteur de socket
  */
-int readn (fd, ptr, maxlen)
-     int  fd;
-     char *ptr;
-     int maxlen;
+int readn (int fd,char* ptr, int maxlen)
 {
   char *tmpptr;
   int nleft, nreadn;
@@ -172,13 +178,11 @@ int readn (fd, ptr, maxlen)
 /*
  * Lire  une ligne terminee par \n à partir d'un descripteur de socket
  */
-int readline (fd, ptr, maxlen)
-     int  fd;
-     char *ptr;
-     int maxlen;
+int readline (int fd, char* ptr, int maxlen)
 {
   
-  int n, rc, retvalue, encore=1;  char c, *tmpptr; 
+  int n, rc, retvalue, encore=1;  
+  char c, *tmpptr; 
 
   tmpptr=ptr;
   for (n=1; (n < maxlen) && (encore) ; n++) {
@@ -202,4 +206,5 @@ int readline (fd, ptr, maxlen)
   *tmpptr = '\0';  /* pour terminer la ligne */
   return (retvalue);
 }
+
 
