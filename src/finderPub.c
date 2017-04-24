@@ -27,7 +27,7 @@ int matchSpecialExpression(char* strRegex, char*str){
 }
 int isItPubRequestForFile(char* fileName, char* requestTerm){
 
-    printf("isItPubRequestForFile methode \n\n");
+    printf("**********************************************\nPUB CHECKER\n**********************************************\n\n");
     FILE * fp;
     char * line = NULL;
     size_t len = 0;
@@ -53,8 +53,8 @@ int isItPubRequestForFile(char* fileName, char* requestTerm){
     printf("Request Term: %s\n",requestTerm);
     
     while ((read = getline(&line, &len, fp)) != -1) {
-        line=substring(line,0,strlen(line)-1);
-        printf("isItPubRequestForFile methode :%s \n\n",line);
+        //str_replace(line,"\n","");
+        //printf("isItPubRequestForFile methode :%s \n\n",line);
 
         if (strchrIndex('!',line)!=0) // les lignes commencants par ! sont des commentaires ->  a ignorer
         {
@@ -63,7 +63,7 @@ int isItPubRequestForFile(char* fileName, char* requestTerm){
             if(strchrIndex('|',line)==0)line=substring(line,1,strlen(line));
             if(strchrIndex('|',line)==0)line=substring(line,1,strlen(line));
             
-            if(matchSpecialExpression(line,requestTerm) || strstr(line, requestTerm) )// soit le terme demandé, est dans easyList )
+            if(matchSpecialExpression(line,requestTerm) || strstr(line, requestTerm))
             {
                 printf("Pub repéré : %s is in \"%s\" \n", requestTerm, line);
 	            return 1;
@@ -72,8 +72,13 @@ int isItPubRequestForFile(char* fileName, char* requestTerm){
        }
     }
 
+    if(line){
+        free(line);
+    }
     fclose(fp);
     printf("Pas de pub reperé %s pour le mot clé %s\n",fileName,requestTerm);
+    
+    printf("\n\n**********************************************\n\n");
     return 0; 
 }
 

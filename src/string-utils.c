@@ -58,8 +58,6 @@ void str_replace(char *target, const char *needle, const char *replacement)
 
 
 int countOccurences(char* strInitial,char* strRecherche){
- 
-     printf("HELLO COUNT OCCURENCES");
      char* token = strtok(strInitial, strRecherche);
      int count=0;
  

@@ -41,7 +41,8 @@ char * get_host(char * httpRequest){
 
 
 char* getRequestURL(char* buffer){
-    char* tmpBuffer=malloc(sizeof(buffer));
+    
+    char* tmpBuffer=malloc(sizeof(char)*strlen(buffer));
     strcpy(tmpBuffer,buffer);
     str_replace(tmpBuffer,"GET ","");
     str_replace(tmpBuffer,"POST ","");
@@ -51,9 +52,11 @@ char* getRequestURL(char* buffer){
 }
 
 void *proxy( void *arg){
+    
     printf("THREAD BEGUN (IRREGULAR VERB: BEGIN BEGAN BEGUN ?) \n");
+    
     int clientSocket = *((int *) arg);
-    char *hostName,*urlRequest=malloc(sizeof(char)*1000);
+    char *hostName,*urlRequest;
     int port;
     char buffer[1024*10]; // on lit la requete que veut faire le navigateur dans ce buffer
     // ca fait pas mal mais j'ai envie de lire tout d'un coup
@@ -90,7 +93,7 @@ void *proxy( void *arg){
         urlRequest=getRequestURL(buffer);
         printf("URL REQUEST IS = %s\n\n",urlRequest);
 
-        if(1==1){//isItPubRequest(urlRequest)){
+        if(!isItPubRequest(urlRequest)){
             // Consideration sur le host dans cette condition -> C'est ici qu'on checkes si c'est une pub
             
             // le host n'est pas dans la easylist
