@@ -42,18 +42,18 @@ char * get_host(char * httpRequest){
 
 char* getRequestURL(char* buffer){
     
-    char* tmpBuffer=malloc(sizeof(char)*strlen(buffer));
+    char tmpBuffer[1024*10] = {0};
     strcpy(tmpBuffer,buffer);
     str_replace(tmpBuffer,"GET ","");
     str_replace(tmpBuffer,"POST ","");
-    int indexEndURL=strchrIndex(' ',tmpBuffer);
+    int indexEndURL = strchrIndex(' ',tmpBuffer);
     return substring(tmpBuffer,0,indexEndURL);
 
 }
 
 void *proxy( void *arg){
     
-    printf("THREAD BEGUN (IRREGULAR VERB: BEGIN BEGAN BEGUN ?) \n");
+    printf("THREAD HAS BEGUN\n");
     
     int clientSocket = *((int *) arg);
     char *hostName,*urlRequest;
@@ -61,7 +61,7 @@ void *proxy( void *arg){
     char buffer[1024*10]; // on lit la requete que veut faire le navigateur dans ce buffer
     // ca fait pas mal mais j'ai envie de lire tout d'un coup
     
-    int socketEnvoi;
+
     int size = recv(clientSocket, buffer, sizeof(buffer), 0);
     
     //On affiche la requete
@@ -122,7 +122,6 @@ int main(int argc, char** argv){
 	int clilen;
     
 	struct sockaddr_in serv_addr,cli_addr;
-	char fromClient[MAXLINE];
 
 
 	if (argc!=2){
@@ -170,17 +169,18 @@ int main(int argc, char** argv){
     clilen = sizeof(cli_addr);
 
 
+	int clientSocket;
+    pthread_t thread1;
 	//Accept
 	while(1){
         
 		//la structure cli_addr permettra de recuperer les donnees du client (adresse ip et port)
-		int clientSocket = accept(serverSocket,(struct sockaddr *) &cli_addr, (socklen_t *)&clilen);
+		clientSocket = accept(serverSocket,(struct sockaddr *) &cli_addr, (socklen_t *)&clilen);
         
 		if(clientSocket <0){
 			perror("servecho : erreur accept \n");
 			exit(1);
 		}
-        pthread_t thread1;
         
         
         if(pthread_create(&thread1, NULL, proxy,&clientSocket) == -1) {
