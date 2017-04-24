@@ -69,7 +69,7 @@ int isItPubRequestForFile(char* fileName, char* requestTerm){
 			
 			if(strchrIndex('|',line)==0) line=substring(line,1,strlen(line));
             
-            if(strchrIndex('^',line)>=0) line=substring(line,strchrIndex("^",line),strlen(line));
+            if(strchrIndex('^',line)>=0) line=substring(line,strchrIndex('^',line),strlen(line));
 
             
 			if(matchSpecialExpression(line,requestTerm) || strstr(line, requestTerm))
