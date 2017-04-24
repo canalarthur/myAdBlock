@@ -1,6 +1,6 @@
-serverTCP:
-	gcc src/serverTCP.c -I include/ -o serverTCP
+all:
+	gcc src/serverTCP.c -pthread -I include/ -o proxy
 
 
 clean:
-	rm -rf serverTCP
+	rm -rf proxy
