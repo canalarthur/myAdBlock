@@ -69,12 +69,13 @@ int isItPubRequestForFile(char* fileName, char* requestTerm){
 			
 			if(strchrIndex('|',line)==0) line=substring(line,1,strlen(line));
             
-            if(strchrIndex('^',line)>=0) line=substring(line,strchrIndex('^',line),strlen(line));
+            str_replace(line,"^$third-party","");
+            str_replace(line,"^$popup","");
 
-            
-			if(matchSpecialExpression(line,requestTerm) || strstr(line, requestTerm))
+            if(matchSpecialExpression(line,requestTerm) || strstr(line, requestTerm))
 			{
-				return 1;
+                printf("LINE PUB EASYLIST = %s\n rT = %s",line,requestTerm);
+                return 1;
 			}
 		}
 		free(line);
