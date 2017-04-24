@@ -7,6 +7,8 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#include <pthread.h>
+
 #include <netdb.h>
 #define MAXLINE 80
 
@@ -22,6 +24,7 @@ void passRequest(int clientSocket,char* fromClient, char* hostName );
 void usage(){
 	printf("usage : servecho numero_port_serveur \n");
 }
+//COPIE COLLE
 char * get_host(char * httpRequest){
     unsigned short i = 0, j = 0;
     char * buffer = strstr(httpRequest, "Host: " );
@@ -34,9 +37,85 @@ char * get_host(char * httpRequest){
     return host;
 }
 
+void str_replace(char *target, const char *needle, const char *replacement)
+{
+    char buffer[1024*50] = { 0 };
+    char *insert_point = &buffer[0];
+    const char *tmp = target;
+    size_t needle_len = strlen(needle);
+    size_t repl_len = strlen(replacement);
+    
+    while (1) {
+        const char *p = strstr(tmp, needle);
+        
+        // walked past last occurrence of needle; copy remaining part
+        if (p == NULL) {
+            strcpy(insert_point, tmp);
+            break;
+        }
+        
+        // copy part before needle
+        memcpy(insert_point, tmp, p - tmp);
+        insert_point += p - tmp;
+        
+        // copy replacement string
+        memcpy(insert_point, replacement, repl_len);
+        insert_point += repl_len;
+        
+        // adjust pointers, move on
+        tmp = p + needle_len;
+    }
+    
+    // write altered string back to target
+    strcpy(target, buffer);
+}
 
+
+
+
+void *proxy( void *arg){
+    printf("THREAD BEGGINED \n");
+    int clientSocket = *((int *) arg);
+
+    char buffer[1024*10]; // on lit la requete que veut faire le navigateur dans ce buffer
+    // ca fait pas mal mais j'ai envie de lire tout d'un coup
+    
+    int socketEnvoi;
+    int size = recv(clientSocket, buffer, sizeof(buffer), 0);
+    
+    //On affiche la requete
+    printf("size : %d \r\n", size);
+    //les 4 lignes qui suivent, sert a remplir de\0 ce qui nous interesse pas. Si j'enleve cette ligne j'ai des "??" qui apparaissent a la fin, c'est zarb
+    if(size>0){
+        str_replace(buffer,"Proxy-Connection: keep-alive","Connection : close");
+        str_replace(buffer,"Connection: keep-alive","Connection : close");
+        printf("Request Received By The BROWSER\r\n");
+        printf("---------\r\n%s---------\r\n", buffer);
+        
+        char * host = get_host(buffer);
+        printf("Host : [%s]\r\n", get_host(buffer));
+        
+        
+        if(1==1){// Consideration sur le host dans cette condition -> C'est ici qu'on checkes si c'est une pub
+            
+            // le host n'est pas dans la easylist
+            passRequest(clientSocket,buffer,host);
+        }else {
+            //C'est une pub... Reste a savoir quoi faire dans ces cas la.
+        }
+        
+
+    }
+    close(clientSocket);
+    printf("Client socket closed\n");
+    printf("THREAD ENDED \n");
+
+    return 0;
+
+
+}
 int main(int argc, char** argv){
-	int serverSocket,clientSocket;/*socket d'écoute et de dialogue*/
+	int serverSocket;/*socket d'écoute et de dialogue*/
 	int clilen;
     
 	struct sockaddr_in serv_addr,cli_addr;
@@ -85,51 +164,31 @@ int main(int argc, char** argv){
 	}
     printf("SERVEUR SOCKET LISTENING\n");
 
-    
+    clilen = sizeof(cli_addr);
+
 
 	//Accept
 	while(1){
         
 		//la structure cli_addr permettra de recuperer les donnees du client (adresse ip et port)
-		clilen = sizeof(cli_addr);
-		clientSocket = accept(serverSocket,(struct sockaddr *) &cli_addr, (socklen_t *)&clilen);
+		int clientSocket = accept(serverSocket,(struct sockaddr *) &cli_addr, (socklen_t *)&clilen);
         
-
 		if(clientSocket <0){
 			perror("servecho : erreur accept \n");
 			exit(1);
 		}
         
-        char buffer[1024*10]; // on lit la requete que veut faire le navigateur dans ce buffer
-        // ca fait pas mal mais j'ai envie de lire tout d'un coup
-
-        int socketEnvoi;
-        int size = recv(clientSocket, buffer, sizeof(buffer), 0);
+        pthread_t thread1;
         
-        //On affiche la requete
-        printf("size : %d \r\n", size);
-        //les 4 lignes qui suivent, sert a remplir de\0 ce qui nous interesse pas. Si j'enleve cette ligne j'ai des "??" qui apparaissent a la fin, c'est zarb
-        int i;
-        for(i=size;i<1024*10;i++){
-            buffer[i]='\0';
+        printf("Avant la création du thread.\n");
+        
+        if(pthread_create(&thread1, NULL, proxy,&clientSocket) == -1) {
+            perror("pthread_create");
+            return EXIT_FAILURE;
         }
         
-        printf("---------\r\n%s---------\r\n", buffer);
-
-        char * host = get_host(buffer);
-        printf("Host : [%s]\r\n", get_host(buffer));
-        
-        if(1==1){// Consideration sur le host dans cette condition -> C'est ici qu'on checkes si c'est une pub
-            
-            // le host n'est pas dans la easylist
-            passRequest(clientSocket,buffer,host);
-        }else {
-            //C'est une pub... Reste a savoir quoi faire dans ces cas la.
-        }
-
-        close(clientSocket);
-        printf("Client socket closed\n");
-	}
+        printf("Après la création du thread.\n");
+    }
 	close(serverSocket);
 
 	return 0;
@@ -140,7 +199,7 @@ void passRequest(int clientSocket,char* fromClient, char* hostName ){
     
     struct hostent *structHost;
     struct sockaddr_in webServer;
-    char buffer[1024*20];
+    char buffer[1024*50];
     int socketEnvoi;
     int size;
     
@@ -168,19 +227,27 @@ void passRequest(int clientSocket,char* fromClient, char* hostName ){
             return;
         }
         
+        printf("Request SENT TO THE WEB SERVER\r\n");
+
         send(socketEnvoi, fromClient, strlen(fromClient), 0);
         
         memset(buffer,'\0',sizeof(buffer)); // on remplit de 0
         
         // On recoit les données du vrai serveur web
+        printf("REPONSE RECEIVED FROM THE WEB SERVER\r\n");
+
         while( (size = recv(socketEnvoi,buffer,sizeof(buffer),0)) != 0){
             
             if(size>0){
+                
                 buffer[size] = '\0';
-                printf("%s",buffer); // on afficher la reponse partielle du vrai serveur web
+                str_replace(buffer,"Proxy-Connection: keep-alive","Connection : close");
+                str_replace(buffer,"Connection: keep-alive","Connection : close");
+
+                printf("%s",buffer); // on affiche la reponse partielle du vrai serveur web
                 
                 // pour les retourner sur le navigateur
-                if(send(clientSocket, buffer,strlen(buffer),0)<0){
+                if(send(clientSocket, buffer,size,0)<0){
                     printf("ERROR send to browser");
                     break;
                 }
