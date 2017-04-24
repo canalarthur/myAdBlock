@@ -5,31 +5,33 @@
 
 //verifie si le deuxieme argument verifier l'expression reguliere du second argument
 int matchSpecialExpression(char* strRegex, char*str){
-   int testIfRegex=0;
-   for(int i=0;i<strlen(strRegex);i++){
-        if(strRegex[i]=='*'){
-           testIfRegex=1;
-           if(matchSpecialExpression(substring(strRegex,0,i),str) ==0 || matchSpecialExpression(substring(strRegex,i+1,strlen(strRegex)),str)==0 ){
-                //printf("before * = %s strRegex = %s\n",substring(strRegex,i+1,strlen(strRegex)), strRegex);   
-                return 0;
-           }
-        }
-   }
-  if(testIfRegex){
-     return 1;
-   }
-  //printf("strRegex = %s, requestTerms = %s \n",strRegex,str);   
-   if(strstr(str,strRegex)){
-       return 1;
-   }else{
-       return 0;
-   }
+	int testIfRegex=0;
+	int i,left,right;
+	for(i=0;i<strlen(strRegex);i++){
+		if(strRegex[i]=='*'){
+			testIfRegex=1;
+			left = matchSpecialExpression(substring(strRegex,0,i),str);
+			right = matchSpecialExpression(substring(strRegex,i+1,strlen(strRegex)),str);
+			if( left == 0 || right == 0 ){
+				//printf("before * = %s strRegex = %s\n",substring(strRegex,i+1,strlen(strRegex)), strRegex);   
+				return 0;
+			}
+		}	
+	}
+	if(testIfRegex) return 1;
+	//printf("strRegex = %s, requestTerms = %s \n",strRegex,str);   
+	if(strstr(str,strRegex)){
+		return 1;
+	}else{
+		return 0;
+	}
 }
+
 int isItPubRequestForFile(char* fileName, char* requestTerm){
 
     printf("**********************************************\nPUB CHECKER\n**********************************************\n\n");
     FILE * fp;
-    char * line = NULL;
+    char *line;
     size_t len = 0;
     ssize_t read;
 
@@ -48,38 +50,44 @@ int isItPubRequestForFile(char* fileName, char* requestTerm){
         return 0;
     }
     
-    printf("isItPubRequestForFile methode 3 \n\n");
-    printf("File Search: %s\n",fullPathAdList);
-    printf("Request Term: %s\n",requestTerm);
+    read = getline(&line, &len, fp);
+    int dbgCount = 0;
     
-    while ((read = getline(&line, &len, fp)) != -1) {
-        //str_replace(line,"\n","");
-        //printf("isItPubRequestForFile methode :%s \n\n",line);
+    while (read > 0) {
+		str_replace(line,"\n","");
+		//printf("isItPubRequestForFile methode :%s \n\n",line);
+		dbgCount ++;
+		if (strchrIndex('!',line)!=0) // les lignes commencants par ! sont des commentaires ->  a ignorer
+		{
+			//printf("\tDEBUG : notcom line %d : comparing |%s| to |%s|\n",dbgCount,requestTerm,line);
+			
+			if(strchrIndex('@',line)==0) line=substring(line,1,strlen(line));
+			
+			if(strchrIndex('@',line)==0) line=substring(line,1,strlen(line));
 
-        if (strchrIndex('!',line)!=0) // les lignes commencants par ! sont des commentaires ->  a ignorer
-        {
-            if(strchrIndex('@',line)==0)line=substring(line,1,strlen(line));
-            if(strchrIndex('@',line)==0)line=substring(line,1,strlen(line));
-            if(strchrIndex('|',line)==0)line=substring(line,1,strlen(line));
-            if(strchrIndex('|',line)==0)line=substring(line,1,strlen(line));
+			if(strchrIndex('|',line)==0) line=substring(line,1,strlen(line));
+			
+			if(strchrIndex('|',line)==0) line=substring(line,1,strlen(line));
             
-            if(matchSpecialExpression(line,requestTerm) || strstr(line, requestTerm))
-            {
-                printf("Pub repéré : %s is in \"%s\" \n", requestTerm, line);
-	            return 1;
-            }
-           
-       }
-    }
+            if(strchrIndex('^',line)>=0) line=substring(line,strchrIndex("^",line),strlen(line));
 
+            
+			if(matchSpecialExpression(line,requestTerm) || strstr(line, requestTerm))
+			{
+				return 1;
+			}
+		}
+		free(line);
+		line = NULL;
+		read = getline(&line, &len, fp);   
+    }
     if(line){
         free(line);
     }
     fclose(fp);
-    printf("Pas de pub reperé %s pour le mot clé %s\n",fileName,requestTerm);
     
-    printf("\n\n**********************************************\n\n");
-    return 0; 
+    printf("**********************************************\nEND OF PUB CHECKER\n**********************************************\n\n");
+    return 0;
 }
 
 int isItPubRequest(char* requestTerm){   
