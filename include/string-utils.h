@@ -5,6 +5,9 @@
 //renvoit l'index de la premiere occurence d'un caractere dans un char*
 int strchrIndex(char c, char* array);
 
+//renvoit l'index de la premiere occurence d'un caractere dans un char*
+int strstrIndex(char* str, char* array);
+
 //extrait une chaine de caractere entre deux index
 char* substring(char* buff,int index, int indexLast);
 

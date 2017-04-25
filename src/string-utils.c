@@ -13,6 +13,16 @@ int strchrIndex(char c, char* array)
     return -1;
 }
 
+//retourne l'occurence d'un char* dans un char*
+int strstrIndex(char* str, char* array)
+{
+    const char *ptr = strstr(array, str);
+    if(ptr) {
+        return ptr - array;
+    }
+    return -1;
+}
+
 //extrait une chaine de caractere entre deux index
 char* substring(char* buff,int index, int indexLast){
      char* subbuff=malloc(sizeof(char)*(indexLast-index+1));
