@@ -13,9 +13,6 @@
 #include "finderPub.c"
 #include "string-utils.c"
 
-
-
-
 //Le nombre maxmimal de threads, avant que l'on attende qu'un se termine.
 //-1 = AUCUN THREAD
 #define MAX_NUMBER_OF_THREADS 4
@@ -28,10 +25,10 @@
 
 char HTTP_PUB_BLOQUE[]=
 "HTTP/1.1 404 Not Found\r\n"
-"Server: Psyphi-Proxy/1.0\r\n"
+"Server: Proxy/1.0\r\n"
 "Connection: close\r\n"
 "Content-Type: text/html; charset=iso-8859-1\r\n"
-"<HTML><BODY><H1>Pub Bloque</H1></BODY></HTML>";
+"<HTML><BODY><H1>AD BLOCKED</H1></BODY></HTML>";
 
 int countThread=0;
 int readline (int fd, char* ptr, int maxlen);

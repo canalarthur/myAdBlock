@@ -18,4 +18,4 @@ int countOccurences(char* strInitial,char* strRecherche);
 char* replaceSTR(char* strInitial, char* strRecherche, char* strRemplace);
 
 //remplace les occurences d'une chaine de caractere dans une autre chaine de caractere
-void str_replace(char *target, const char *needle, const char *replacement);
+void str_replace(char *target, const char *toChange, const char *replacement);
