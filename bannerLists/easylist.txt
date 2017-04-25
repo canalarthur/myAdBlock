@@ -1,3 +1,7 @@
+adids=
+ads.programmatic
+taboola.com
+&noadcbk=sas.noad
 &ad.vid=
 &ad_box_
 &ad_channel=
