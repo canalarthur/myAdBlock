@@ -18,7 +18,7 @@
 
 //Le nombre maxmimal de threads, avant que l'on attende qu'un se termine.
 //-1 = AUCUN THREAD
-#define MAX_NUMBER_OF_THREADS 10
+#define MAX_NUMBER_OF_THREADS 4
 
 //COULEURS POUR LES LOGS
 #define NORMAL "\x1B[0m"
